@@ -138,28 +138,29 @@ export default function OrderPage({ slug, shopName }: Props) {
 
   // ── Success ────────────────────────────────────────────────────────────────
   if (step === "success") {
-    return (
-      <>
-        <Head><title>Order Placed — Home Croissanterie</title></Head>
-        <div className={styles.page}>
-          <div className={styles.successCard}>
-            <div className={styles.header}>
-              <div className={styles.logo}>Home Croissanterie</div>
-              <div className={styles.headerSub}>Wholesale</div>
-            </div>
-            <div className={styles.tanBar} />
-            <div className={styles.successTitle}>Order placed!</div>
-              <p className={styles.successMsg}>
-                If you have any questions please don&apos;t hesitate to contact
-              </p>
-              <p className={styles.successContact}>
-                ben@homecroissanterie.com.au<br />
-                0475 764 939
-              </p>
+  return (
+    <>
+      <Head><title>Order Placed — Home Croissanterie</title></Head>
+      <div className={styles.page}>
+        <div className={styles.successCard}>
+          <div className={styles.header}>
+            <div className={styles.logo}>Home Croissanterie</div>
+            <div className={styles.headerSub}>Wholesale</div>
+          </div>
+          <div className={styles.tanBar} />
+          <div className={styles.successTitle}>Order placed!</div>
+          <p className={styles.successMsg}>
+            If you have any questions please don&apos;t hesitate to contact
+          </p>
+          <p className={styles.successContact}>
+            ben@homecroissanterie.com.au<br />
+            0475 764 939
+          </p>
         </div>
-      </>
-    );
-  }
+      </div>
+    </>
+  );
+}
 
   return (
     <>
