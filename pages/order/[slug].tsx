@@ -148,14 +148,14 @@ export default function OrderPage({ slug, shopName }: Props) {
               <div className={styles.headerSub}>Wholesale</div>
             </div>
             <div className={styles.tanBar} />
-            <div className={styles.successIcon}>🥐</div>
             <div className={styles.successTitle}>Order placed!</div>
-            <p className={styles.successMsg}>
-              Your order has been sent to Home Croissanterie.
-              Ben will be in touch to confirm your delivery.
-            </p>
-            <p className={styles.successContact}>ben@homecroissanterie.com.au</p>
-          </div>
+              <p className={styles.successMsg}>
+                If you have any questions please don&apos;t hesitate to contact
+              </p>
+              <p className={styles.successContact}>
+                ben@homecroissanterie.com.au<br />
+                0475 764 939
+              </p>
         </div>
       </>
     );
