@@ -20,15 +20,17 @@ import {
   isValidDeliveryDate,
   toDateStr,
 } from "../../lib/dates";
-import { checkDuplicate, logOrder } from "../../lib/webApp";
+import { checkDuplicate, logOrder, getOrderHistory, OrderHistoryItem } from "../../lib/webApp";
 import styles from "./[slug].module.css";
 
 interface Props {
   slug: string;
   shopName: string;
+  orderHistory: OrderHistoryItem[];
 }
 
 type Step = "form" | "confirm" | "submitting" | "success";
+type Tab = "order" | "history";
 
 interface OrderLine {
   name: string;
@@ -37,7 +39,8 @@ interface OrderLine {
   lineTotal: string;
 }
 
-export default function OrderPage({ slug, shopName }: Props) {
+export default function OrderPage({ slug, shopName, orderHistory }: Props) {
+  const [tab, setTab] = useState<Tab>("order");
   const [qtys, setQtys] = useState<number[]>(MENU_ITEMS.map(() => 0));
   const [deliveryDate, setDeliveryDate] = useState<Date | undefined>();
   const [showCalendar, setShowCalendar] = useState(false);
@@ -179,6 +182,24 @@ export default function OrderPage({ slug, shopName }: Props) {
           <div className={styles.tanBar} />
 
           <div className={styles.body}>
+            <div className={styles.tabs}>
+              <button
+                className={`${styles.tabBtn} ${tab === "order" ? styles.tabBtnActive : ""}`}
+                onClick={() => setTab("order")}
+              >
+                New Order
+              </button>
+              <button
+                className={`${styles.tabBtn} ${tab === "history" ? styles.tabBtnActive : ""}`}
+                onClick={() => setTab("history")}
+              >
+                Order History{orderHistory.length > 0 ? ` (${orderHistory.length})` : ""}
+              </button>
+            </div>
+
+            {tab === "history" && <OrderHistoryList orders={orderHistory} />}
+
+            {tab === "order" && <>
             {/* Shop */}
             <p className={styles.sectionLabel}>Ordering for</p>
             <div className={styles.shopName}>{shopName}</div>
@@ -304,6 +325,7 @@ export default function OrderPage({ slug, shopName }: Props) {
               All prices include GST · 2 day lead time, orders by 12pm noon<br />
               Questions? <a href="mailto:ben@homecroissanterie.com.au">ben@homecroissanterie.com.au</a>
             </p>
+            </>}
           </div>
         </div>
       </div>
@@ -368,6 +390,33 @@ export default function OrderPage({ slug, shopName }: Props) {
   );
 }
 
+// ── Order History tab ─────────────────────────────────────────────────────────
+function OrderHistoryList({ orders }: { orders: OrderHistoryItem[] }) {
+  if (orders.length === 0) {
+    return <p className={styles.loading}>No past orders yet.</p>;
+  }
+
+  return (
+    <div className={styles.historyList}>
+      {orders.map((order, i) => (
+        <div key={`${order.timestamp}-${i}`} className={styles.historyCard}>
+          <div className={styles.historyCardHeader}>
+            <span className={styles.historyDate}>{order.dateStr}</span>
+            <span className={styles.historyStatus}>{order.status}</span>
+          </div>
+          <div className={styles.historyItems}>{order.items}</div>
+          <div className={styles.historyFooter}>
+            <span className={styles.historySubmitted}>
+              Placed {format(new Date(order.timestamp), "d MMM yyyy, h:mm a")}
+            </span>
+            <span className={styles.historyTotal}>${order.total.toFixed(2)}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export const getStaticPaths: GetStaticPaths = async () => {
   const paths = Object.keys(CUSTOMERS).map((slug) => ({ params: { slug } }));
   return { paths, fallback: false };
@@ -377,5 +426,14 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const slug = params?.slug as string;
   const customer = CUSTOMERS[slug];
   if (!customer) return { notFound: true };
-  return { props: { slug, shopName: customer.name } };
+
+  const orderHistory = await getOrderHistory(customer.name);
+
+  return {
+    props: { slug, shopName: customer.name, orderHistory },
+    // The Web App itself caches per-shop for 5 minutes; matching that here
+    // means the page is served instantly from Vercel's cache and only
+    // regenerates in the background at most as often as the data can change.
+    revalidate: 300,
+  };
 };

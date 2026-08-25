@@ -1,5 +1,5 @@
 export const WEBAPP_URL =
-  "https://script.google.com/macros/s/AKfycbwMG2cXdyoHEooupQnApCEIMT3I7Je2LLJzzFBp8SmtdNJKCLtK8Hg-2ImKFXGe7gt2TA/exec";
+  "https://script.google.com/macros/s/AKfycbzxL0To4nU_C8TLhS9oEcYX8YvgUWh0upZlasLjhdyzrBdsajPA5Lv8wvL_miE8fsMbvw/exec";
 
 export const MENU_ITEMS = [
   {
