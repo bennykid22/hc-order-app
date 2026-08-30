@@ -46,6 +46,8 @@ export default function OrderPage({ slug, shopName }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [earliestLabel, setEarliestLabel] = useState("");
   const [dupInfo, setDupInfo] = useState<{ timestamp: string; items: string } | null>(null);
+  const [imgErrors, setImgErrors] = useState<Set<string>>(new Set());
+  const [previewItem, setPreviewItem] = useState<(typeof MENU_ITEMS)[number] | null>(null);
 
   useEffect(() => {
     const update = () => setEarliestLabel(getEarliestLabel());
@@ -221,6 +223,28 @@ export default function OrderPage({ slug, shopName }: Props) {
             <div className={styles.itemsGrid}>
               {MENU_ITEMS.map((item, i) => (
                 <div key={item.name} className={styles.itemRow}>
+                  {item.image && !imgErrors.has(item.name) ? (
+                    <button
+                      type="button"
+                      className={styles.itemThumb}
+                      onClick={() => setPreviewItem(item)}
+                      aria-label={`View photo of ${item.name}`}
+                    >
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className={styles.itemThumbImg}
+                        loading="lazy"
+                        onError={() =>
+                          setImgErrors((prev) => new Set(prev).add(item.name))
+                        }
+                      />
+                    </button>
+                  ) : (
+                    <div className={styles.itemThumb}>
+                      <div className={styles.itemThumbPlaceholder} aria-hidden="true">🥐</div>
+                    </div>
+                  )}
                   <div className={styles.itemInfo}>
                     <div className={styles.itemName}>{item.name}</div>
                     <div className={styles.itemDesc}>{item.description}</div>
@@ -361,6 +385,27 @@ export default function OrderPage({ slug, shopName }: Props) {
                 {submitting ? "Sending..." : "Confirm order"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Photo preview */}
+      {previewItem && (
+        <div className={styles.overlay} onClick={() => setPreviewItem(null)}>
+          <div className={styles.photoModal} onClick={(e) => e.stopPropagation()}>
+            <button
+              className={styles.photoClose}
+              onClick={() => setPreviewItem(null)}
+              aria-label="Close photo"
+            >
+              ×
+            </button>
+            <img
+              src={previewItem.imageLarge ?? previewItem.image}
+              alt={previewItem.name}
+              className={styles.photoModalImg}
+            />
+            <div className={styles.photoModalCaption}>{previewItem.name}</div>
           </div>
         </div>
       )}
