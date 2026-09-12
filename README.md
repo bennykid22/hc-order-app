@@ -5,7 +5,7 @@ A mobile-first web app for wholesale customers to place orders.
 ## Customer URLs
 - Beta Coffee: `https://order.homecroissanterie.com.au/order/beta-coffee`
 - Algorithm Potts Point: `https://order.homecroissanterie.com.au/order/algorithm-potts-point`
-- Diggy Doos: `https://order.homecroissanterie.com.au/order/diggy-doos`
+- Pillar Burwood: `https://order.homecroissanterie.com.au/order/pillar-burwood`
 
 ---
 

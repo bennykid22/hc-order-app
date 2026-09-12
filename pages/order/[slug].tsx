@@ -1,10 +1,13 @@
-import { GetStaticPaths, GetStaticProps } from "next";
+import { GetServerSideProps } from "next";
+import { getServerSession } from "next-auth/next";
+import { signOut } from "next-auth/react";
 import Head from "next/head";
 import { useState, useCallback, useEffect } from "react";
 import { DayPicker } from "react-day-picker";
 import { format } from "date-fns";
 import "react-day-picker/style.css";
 
+import { authOptions } from "../api/auth/[...nextauth]";
 import {
   MENU_ITEMS,
   CUSTOMERS,
@@ -201,7 +204,22 @@ export default function OrderPage({ slug, shopName, orderHistory }: Props) {
 
             {tab === "order" && <>
             {/* Shop */}
-            <p className={styles.sectionLabel}>Ordering for</p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+              <p className={styles.sectionLabel}>Ordering for</p>
+              <button
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "var(--tan)",
+                  fontSize: 11,
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                }}
+              >
+                Log out
+              </button>
+            </div>
             <div className={styles.shopName}>{shopName}</div>
 
             {/* Date */}
@@ -417,23 +435,26 @@ function OrderHistoryList({ orders }: { orders: OrderHistoryItem[] }) {
   );
 }
 
-export const getStaticPaths: GetStaticPaths = async () => {
-  const paths = Object.keys(CUSTOMERS).map((slug) => ({ params: { slug } }));
-  return { paths, fallback: false };
-};
-
-export const getStaticProps: GetStaticProps = async ({ params }) => {
+export const getServerSideProps: GetServerSideProps<Props> = async ({
+  params,
+  req,
+  res,
+}) => {
   const slug = params?.slug as string;
   const customer = CUSTOMERS[slug];
   if (!customer) return { notFound: true };
 
+  const session = await getServerSession(req, res, authOptions);
+  if (!session || session.user.slug !== slug) {
+    return {
+      redirect: {
+        destination: `/login?callbackUrl=${encodeURIComponent(`/order/${slug}`)}`,
+        permanent: false,
+      },
+    };
+  }
+
   const orderHistory = await getOrderHistory(customer.name);
 
-  return {
-    props: { slug, shopName: customer.name, orderHistory },
-    // The Web App itself caches per-shop for 5 minutes; matching that here
-    // means the page is served instantly from Vercel's cache and only
-    // regenerates in the background at most as often as the data can change.
-    revalidate: 300,
-  };
+  return { props: { slug, shopName: customer.name, orderHistory } };
 };
