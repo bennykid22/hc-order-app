@@ -39,18 +39,31 @@ export const MENU_ITEMS = [
   },
 ];
 
-export const CUSTOMERS: Record<string, { name: string; email: string }> = {
+export const CUSTOMERS: Record<
+  string,
+  { name: string; emails: string[]; passwordHash: string }
+> = {
   "beta-coffee": {
     name: "Beta Coffee",
-    email: "hello@betacoffee.com.au",
+    emails: ["hello@betacoffee.com.au"],
+    // Temporary password: 9XMzKVTu — have the customer change this once they can log in.
+    passwordHash: "$2b$10$PK3WGYYhvUwy5rZbb2VbYO7zw2ocfwctS3sVcgO/ppD6.n0p3M0eu",
   },
   "algorithm-potts-point": {
     name: "Algorithm Potts Point",
-    email: "",
+    emails: [
+      "babyangelinakartiko@gmail.com",
+      "leonard3198@gmail.com",
+      "bangzoonk@gmail.com",
+    ],
+    // Password: AlgorithmHC2026
+    passwordHash: "$2b$10$fHL.F/34i2zEkUytpNKZXu4hZMJrI8wi6Tn0xehkwwoCJK85Zhnyy",
   },
   "diggy-doos": {
     name: "Diggy Doos",
-    email: "",
+    emails: ["diggy-doos@placeholder.homecroissanterie.com.au"], // TODO: replace with their real email
+    // Temporary password: 8USNX1S0 — have the customer change this once they can log in.
+    passwordHash: "$2b$10$r2EXrcozCDDlt5/Rf2QrXu4yeLZxU.gfkIAfmcZ2wMKMelbzXYIua",
   },
 };
 

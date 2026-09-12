@@ -1,0 +1,125 @@
+.page {
+  min-height: 100vh;
+  background: var(--grey);
+  padding: 24px 16px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.header {
+  background: var(--black);
+  padding: 28px 28px 20px;
+  text-align: center;
+}
+
+.logo {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: normal;
+  color: var(--white);
+  letter-spacing: 0.5px;
+}
+
+.headerSub {
+  margin-top: 4px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--tan);
+}
+
+.tanBar {
+  height: 3px;
+  background: var(--tan);
+}
+
+.body {
+  padding: 28px 24px 32px;
+}
+
+.fieldLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--tan);
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.field + .field {
+  margin-top: 18px;
+}
+
+.input {
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--grey);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius);
+  font-size: 14px;
+  color: var(--black);
+  transition: border-color 0.15s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--tan);
+  background: var(--white);
+}
+
+.error {
+  margin-top: 16px;
+  background: #fdecec;
+  border: 1px solid #f0b8b8;
+  color: var(--red);
+  font-size: 12.5px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  line-height: 1.5;
+}
+
+.submitBtn {
+  width: 100%;
+  margin-top: 22px;
+  padding: 15px;
+  background: var(--tan);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.submitBtn:hover { background: #8f6e5a; }
+.submitBtn:active { transform: scale(0.99); }
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.terms {
+  font-size: 11px;
+  color: var(--charcoal);
+  opacity: 0.55;
+  text-align: center;
+  margin-top: 20px;
+  line-height: 1.7;
+}
+
+.terms a { color: var(--tan); text-decoration: none; }
