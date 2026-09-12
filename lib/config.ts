@@ -19,7 +19,7 @@ export const MENU_ITEMS = [
   {
     name: "Potato & Sea Salt",
     price: 5.50,
-    description: "Peleton Estate EVOO & sea salt — signature best seller",
+    description: "Pendleton Estate EVOO & sea salt - signature best seller",
     image: "/menu/Potato & Sea Salt.JPG",
     imageLarge: "/menu/large/Potato & Sea Salt.JPG",
   },
@@ -47,7 +47,7 @@ export const MENU_ITEMS = [
   {
     name: "Cardamom Kouign-Amann",
     price: 5.50,
-    description: "Brown butter & vanilla bean syrup glaze",
+    description: "Rolled with oats, and dipped in a vanilla tonka & rum syrup",
     image: "/menu/Cardamom Kouign Amann.JPG",
     imageLarge: "/menu/large/Cardamom Kouign Amann.JPG",
   },
