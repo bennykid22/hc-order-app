@@ -59,11 +59,11 @@ export const CUSTOMERS: Record<
     // Password: AlgorithmHC2026
     passwordHash: "$2b$10$fHL.F/34i2zEkUytpNKZXu4hZMJrI8wi6Tn0xehkwwoCJK85Zhnyy",
   },
-  "diggy-doos": {
-    name: "Diggy Doos",
-    emails: ["diggy-doos@placeholder.homecroissanterie.com.au"], // TODO: replace with their real email
-    // Temporary password: 8USNX1S0 — have the customer change this once they can log in.
-    passwordHash: "$2b$10$r2EXrcozCDDlt5/Rf2QrXu4yeLZxU.gfkIAfmcZ2wMKMelbzXYIua",
+  "pillar-burwood": {
+    name: "Pillar Burwood",
+    emails: ["hello@pillarbrewers.com"],
+    // Password: PillarBurwoodHC2134
+    passwordHash: "$2b$10$fOzyG.nB0c.SQvvQKx6Y9uzeY/UJhcfFQKCOkkEvB.FXTrt.ETxs.",
   },
 };
 
