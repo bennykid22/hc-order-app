@@ -117,6 +117,43 @@
 .dateHint.invalid { color: var(--red); }
 .dateHint.neutral { color: var(--charcoal); opacity: 0.6; }
 
+/* ── Fulfillment toggle ── */
+.fulfillmentToggle {
+  display: flex;
+  gap: 4px;
+  background: var(--grey);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.fulfillmentBtn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--charcoal);
+  opacity: 0.6;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.fulfillmentBtnActive {
+  background: var(--white);
+  color: var(--black);
+  opacity: 1;
+  box-shadow: var(--shadow-lg);
+}
+
+.pickupNote {
+  font-size: 11.5px;
+  color: var(--tan);
+  padding: 6px 2px 0;
+  line-height: 1.5;
+}
+
 /* Calendar popup */
 .calendarWrapper {
   background: var(--white);
@@ -598,6 +635,110 @@ button.itemThumb:active {
   color: #8a5a00;
   margin-bottom: 6px;
   font-size: 13px;
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--grey);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 4px;
+}
+
+.tabBtn {
+  flex: 1;
+  padding: 9px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--charcoal);
+  opacity: 0.6;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tabBtnActive {
+  background: var(--white);
+  color: var(--black);
+  opacity: 1;
+  box-shadow: var(--shadow-lg);
+}
+
+/* ── Order history ── */
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.historyCard {
+  border: 1px solid var(--grey);
+  border-radius: 10px;
+  padding: 14px;
+  background: var(--white);
+}
+
+.historyCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.historyDate {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.historyStatus {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 600;
+  color: var(--green);
+}
+
+.historyFulfillment {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 600;
+  color: var(--tan);
+  margin-right: 8px;
+}
+
+.historyItems {
+  font-size: 12.5px;
+  color: var(--charcoal);
+  opacity: 0.8;
+  line-height: 1.5;
+}
+
+.historyFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--grey);
+}
+
+.historySubmitted {
+  font-size: 11px;
+  color: var(--charcoal);
+  opacity: 0.5;
+}
+
+.historyTotal {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--black);
 }
 
 /* ── Loading ── */

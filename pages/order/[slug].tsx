@@ -1,10 +1,13 @@
-import { GetStaticPaths, GetStaticProps } from "next";
+import { GetServerSideProps } from "next";
+import { getServerSession } from "next-auth/next";
+import { signOut } from "next-auth/react";
 import Head from "next/head";
 import { useState, useCallback, useEffect } from "react";
 import { DayPicker } from "react-day-picker";
 import { format } from "date-fns";
 import "react-day-picker/style.css";
 
+import { authOptions } from "../api/auth/[...nextauth]";
 import {
   MENU_ITEMS,
   CUSTOMERS,
@@ -20,15 +23,18 @@ import {
   isValidDeliveryDate,
   toDateStr,
 } from "../../lib/dates";
-import { checkDuplicate, logOrder } from "../../lib/webApp";
+import { checkDuplicate, logOrder, getOrderHistory, OrderHistoryItem } from "../../lib/webApp";
 import styles from "./[slug].module.css";
 
 interface Props {
   slug: string;
   shopName: string;
+  orderHistory: OrderHistoryItem[];
 }
 
 type Step = "form" | "confirm" | "submitting" | "success";
+type Tab = "order" | "history";
+type Fulfillment = "delivery" | "pickup";
 
 interface OrderLine {
   name: string;
@@ -37,7 +43,9 @@ interface OrderLine {
   lineTotal: string;
 }
 
-export default function OrderPage({ slug, shopName }: Props) {
+export default function OrderPage({ slug, shopName, orderHistory }: Props) {
+  const [tab, setTab] = useState<Tab>("order");
+  const [fulfillment, setFulfillment] = useState<Fulfillment>("delivery");
   const [qtys, setQtys] = useState<number[]>(MENU_ITEMS.map(() => 0));
   const [deliveryDate, setDeliveryDate] = useState<Date | undefined>();
   const [showCalendar, setShowCalendar] = useState(false);
@@ -61,7 +69,12 @@ export default function OrderPage({ slug, shopName }: Props) {
   const subtotal = MENU_ITEMS.reduce((s, item, i) => s + item.price * qtys[i], 0);
   const discountRate = totalUnits >= VOLUME_DISCOUNT_THRESHOLD ? VOLUME_DISCOUNT_RATE : 0;
   const discountAmount = subtotal * discountRate;
-  const delivery = subtotal < FREE_DELIVERY_THRESHOLD ? DELIVERY_FEE : 0;
+  const delivery =
+    fulfillment === "pickup"
+      ? 0
+      : subtotal < FREE_DELIVERY_THRESHOLD
+      ? DELIVERY_FEE
+      : 0;
   const total = subtotal - discountAmount + delivery;
   const progressPct = Math.min(100, (totalUnits / VOLUME_DISCOUNT_THRESHOLD) * 100);
 
@@ -119,14 +132,14 @@ export default function OrderPage({ slug, shopName }: Props) {
         body: JSON.stringify({
           shopName, dateStr, notes, lines: orderedLines,
           subtotal, discount: -discountAmount,
-          deliveryFee: delivery, total, totalUnits,
+          deliveryFee: delivery, total, totalUnits, fulfillment,
         }),
       });
 
       await logOrder({
         shopName, deliveryDate, dateStr,
         items: itemSummary, subtotal,
-        deliveryFee: delivery, total,
+        deliveryFee: delivery, total, fulfillment,
       });
 
       setStep("success");
@@ -181,12 +194,69 @@ export default function OrderPage({ slug, shopName }: Props) {
           <div className={styles.tanBar} />
 
           <div className={styles.body}>
+            <div className={styles.tabs}>
+              <button
+                className={`${styles.tabBtn} ${tab === "order" ? styles.tabBtnActive : ""}`}
+                onClick={() => setTab("order")}
+              >
+                New Order
+              </button>
+              <button
+                className={`${styles.tabBtn} ${tab === "history" ? styles.tabBtnActive : ""}`}
+                onClick={() => setTab("history")}
+              >
+                Order History{orderHistory.length > 0 ? ` (${orderHistory.length})` : ""}
+              </button>
+            </div>
+
+            {tab === "history" && <OrderHistoryList orders={orderHistory} />}
+
+            {tab === "order" && <>
             {/* Shop */}
-            <p className={styles.sectionLabel}>Ordering for</p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+              <p className={styles.sectionLabel}>Ordering for</p>
+              <button
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "var(--tan)",
+                  fontSize: 11,
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                }}
+              >
+                Log out
+              </button>
+            </div>
             <div className={styles.shopName}>{shopName}</div>
 
+            {/* Fulfillment */}
+            <p className={styles.sectionLabel} style={{ marginTop: 20 }}>Delivery or pickup?</p>
+            <div className={styles.fulfillmentToggle}>
+              <button
+                className={`${styles.fulfillmentBtn} ${fulfillment === "delivery" ? styles.fulfillmentBtnActive : ""}`}
+                onClick={() => setFulfillment("delivery")}
+              >
+                Delivery
+              </button>
+              <button
+                className={`${styles.fulfillmentBtn} ${fulfillment === "pickup" ? styles.fulfillmentBtnActive : ""}`}
+                onClick={() => setFulfillment("pickup")}
+              >
+                Pickup
+              </button>
+            </div>
+            {fulfillment === "pickup" && (
+              <p className={styles.pickupNote}>
+                Pickup is available anytime from 6:30am onwards.
+              </p>
+            )}
+
             {/* Date */}
-            <p className={styles.sectionLabel} style={{ marginTop: 20 }}>Requested delivery date</p>
+            <p className={styles.sectionLabel} style={{ marginTop: 20 }}>
+              {fulfillment === "pickup" ? "Requested pickup date" : "Requested delivery date"}
+            </p>
             <div className={styles.dateField}>
               <button
                 className={`${styles.dateButton} ${deliveryDate ? styles.hasDate : ""}`}
@@ -299,10 +369,12 @@ export default function OrderPage({ slug, shopName }: Props) {
 
               <div className={styles.summaryRow}>
                 <span className={styles.summaryLabel}>
-                  Delivery{" "}
-                  <span style={{ opacity: 0.5, fontSize: 11 }}>
-                    {delivery === 0 ? "(free over $120)" : "($20 · free over $120)"}
-                  </span>
+                  {fulfillment === "pickup" ? "Pickup" : "Delivery"}{" "}
+                  {fulfillment === "delivery" && (
+                    <span style={{ opacity: 0.5, fontSize: 11 }}>
+                      {delivery === 0 ? "(free over $120)" : "($20 · free over $120)"}
+                    </span>
+                  )}
                 </span>
                 <span className={styles.summaryValue}>{delivery === 0 ? "Free" : `$${delivery.toFixed(2)}`}</span>
               </div>
@@ -328,6 +400,7 @@ export default function OrderPage({ slug, shopName }: Props) {
               All prices include GST · 2 day lead time, orders by 12pm noon<br />
               Questions? <a href="mailto:ben@homecroissanterie.com.au">ben@homecroissanterie.com.au</a>
             </p>
+            </>}
           </div>
         </div>
       </div>
@@ -350,8 +423,15 @@ export default function OrderPage({ slug, shopName }: Props) {
             <div className={styles.modalSection}>Shop</div>
             <div style={{ fontSize: 14, fontWeight: 600, color: "var(--black)" }}>{shopName}</div>
 
-            <div className={styles.modalSection}>Delivery date</div>
+            <div className={styles.modalSection}>
+              {fulfillment === "pickup" ? "Pickup date" : "Delivery date"}
+            </div>
             <div style={{ fontSize: 14, color: "var(--charcoal)" }}>{format(deliveryDate, "EEEE d MMMM yyyy")}</div>
+            {fulfillment === "pickup" && (
+              <p className={styles.pickupNote} style={{ marginTop: 4 }}>
+                Pickup is available anytime from 6:30am onwards.
+              </p>
+            )}
 
             <div className={styles.modalSection}>Items</div>
             {orderedLines.map((l) => (
@@ -372,7 +452,8 @@ export default function OrderPage({ slug, shopName }: Props) {
               </div>
             )}
             <div className={styles.modalItem}>
-              <span>Delivery</span><span>{delivery === 0 ? "Free" : `$${delivery.toFixed(2)}`}</span>
+              <span>{fulfillment === "pickup" ? "Pickup" : "Delivery"}</span>
+              <span>{delivery === 0 ? "Free" : `$${delivery.toFixed(2)}`}</span>
             </div>
 
             <div className={styles.modalTotal}>
@@ -413,14 +494,56 @@ export default function OrderPage({ slug, shopName }: Props) {
   );
 }
 
-export const getStaticPaths: GetStaticPaths = async () => {
-  const paths = Object.keys(CUSTOMERS).map((slug) => ({ params: { slug } }));
-  return { paths, fallback: false };
-};
+// ── Order History tab ─────────────────────────────────────────────────────────
+function OrderHistoryList({ orders }: { orders: OrderHistoryItem[] }) {
+  if (orders.length === 0) {
+    return <p className={styles.loading}>No past orders yet.</p>;
+  }
 
-export const getStaticProps: GetStaticProps = async ({ params }) => {
+  return (
+    <div className={styles.historyList}>
+      {orders.map((order, i) => (
+        <div key={`${order.timestamp}-${i}`} className={styles.historyCard}>
+          <div className={styles.historyCardHeader}>
+            <span className={styles.historyDate}>{order.dateStr}</span>
+            <span>
+              <span className={styles.historyFulfillment}>{order.fulfillment}</span>
+              <span className={styles.historyStatus}>{order.status}</span>
+            </span>
+          </div>
+          <div className={styles.historyItems}>{order.items}</div>
+          <div className={styles.historyFooter}>
+            <span className={styles.historySubmitted}>
+              Placed {format(new Date(order.timestamp), "d MMM yyyy, h:mm a")}
+            </span>
+            <span className={styles.historyTotal}>${order.total.toFixed(2)}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export const getServerSideProps: GetServerSideProps<Props> = async ({
+  params,
+  req,
+  res,
+}) => {
   const slug = params?.slug as string;
   const customer = CUSTOMERS[slug];
   if (!customer) return { notFound: true };
-  return { props: { slug, shopName: customer.name } };
+
+  const session = await getServerSession(req, res, authOptions);
+  if (!session || session.user.slug !== slug) {
+    return {
+      redirect: {
+        destination: `/login?callbackUrl=${encodeURIComponent(`/order/${slug}`)}`,
+        permanent: false,
+      },
+    };
+  }
+
+  const orderHistory = await getOrderHistory(customer.name);
+
+  return { props: { slug, shopName: customer.name, orderHistory } };
 };

@@ -7,7 +7,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { shopName, dateStr, notes, lines, subtotal, discount, deliveryFee, total, totalUnits } = req.body;
+  const { shopName, dateStr, notes, lines, subtotal, discount, deliveryFee, total, totalUnits, fulfillment } = req.body;
   if (!shopName || !dateStr || !lines) return res.status(400).json({ error: "Missing required fields" });
 
   const itemLines = lines
@@ -15,17 +15,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       `  • ${l.name}  ×${l.qty}  ($${l.price.toFixed(2)} each)  =  $${l.lineTotal}`)
     .join("\n");
 
+  const isPickup = fulfillment === "pickup";
+
   const bodyLines = [
     "Hi Ben,", "",
     `New wholesale order from ${shopName}.`, "",
-    `Requested delivery: ${dateStr}`,
+    `Fulfillment: ${isPickup ? "Pickup (available anytime from 6:30am)" : "Delivery"}`,
+    `Requested ${isPickup ? "pickup" : "delivery"} date: ${dateStr}`,
     notes ? `Notes: ${notes}` : null,
     "", "─────────────────────────────",
     itemLines,
     "─────────────────────────────", "",
     `Subtotal:    $${Number(subtotal).toFixed(2)}`,
     discount < 0 ? `Discount:    -$${Math.abs(Number(discount)).toFixed(2)}  (10% volume discount — ${totalUnits} units)` : null,
-    `Delivery:    ${Number(deliveryFee) > 0 ? "$" + Number(deliveryFee).toFixed(2) : "Free"}`, "",
+    `${isPickup ? "Pickup" : "Delivery"}:    ${Number(deliveryFee) > 0 ? "$" + Number(deliveryFee).toFixed(2) : "Free"}`, "",
     `ORDER TOTAL: $${Number(total).toFixed(2)} inc. GST`,
     "", "—", shopName,
   ].filter(Boolean).join("\n");

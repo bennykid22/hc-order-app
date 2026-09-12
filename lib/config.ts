@@ -1,5 +1,5 @@
 export const WEBAPP_URL =
-  "https://script.google.com/macros/s/AKfycbwMG2cXdyoHEooupQnApCEIMT3I7Je2LLJzzFBp8SmtdNJKCLtK8Hg-2ImKFXGe7gt2TA/exec";
+  "https://script.google.com/macros/s/AKfycbzxL0To4nU_C8TLhS9oEcYX8YvgUWh0upZlasLjhdyzrBdsajPA5Lv8wvL_miE8fsMbvw/exec";
 
 export const MENU_ITEMS = [
   {
@@ -53,18 +53,31 @@ export const MENU_ITEMS = [
   },
 ];
 
-export const CUSTOMERS: Record<string, { name: string; email: string }> = {
+export const CUSTOMERS: Record<
+  string,
+  { name: string; emails: string[]; passwordHash: string }
+> = {
   "beta-coffee": {
     name: "Beta Coffee",
-    email: "hello@betacoffee.com.au",
+    emails: ["hello@betacoffee.com.au"],
+    // Temporary password: 9XMzKVTu — have the customer change this once they can log in.
+    passwordHash: "$2b$10$PK3WGYYhvUwy5rZbb2VbYO7zw2ocfwctS3sVcgO/ppD6.n0p3M0eu",
   },
   "algorithm-potts-point": {
     name: "Algorithm Potts Point",
-    email: "",
+    emails: [
+      "babyangelinakartiko@gmail.com",
+      "leonard3198@gmail.com",
+      "bangzoonk@gmail.com",
+    ],
+    // Password: AlgorithmHC2026
+    passwordHash: "$2b$10$fHL.F/34i2zEkUytpNKZXu4hZMJrI8wi6Tn0xehkwwoCJK85Zhnyy",
   },
-  "diggy-doos": {
-    name: "Diggy Doos",
-    email: "",
+  "pillar-burwood": {
+    name: "Pillar Burwood",
+    emails: ["hello@pillarbrewers.com"],
+    // Password: PillarBurwoodHC2134
+    passwordHash: "$2b$10$fOzyG.nB0c.SQvvQKx6Y9uzeY/UJhcfFQKCOkkEvB.FXTrt.ETxs.",
   },
 };
 

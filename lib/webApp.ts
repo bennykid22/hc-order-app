@@ -49,6 +49,7 @@ export interface LogOrderParams {
   subtotal: number;
   deliveryFee: number;
   total: number;
+  fulfillment: "delivery" | "pickup";
 }
 
 /**
@@ -65,9 +66,41 @@ export async function logOrder(params: LogOrderParams): Promise<void> {
       subtotal: params.subtotal,
       delivery: params.deliveryFee,
       total: params.total,
+      fulfillment: params.fulfillment,
     });
     await fetch(url);
   } catch {
     // Silently fail — email already sent so order isn't lost
+  }
+}
+
+export interface OrderHistoryItem {
+  timestamp: string;
+  dateStr: string;
+  items: string;
+  subtotal: number;
+  deliveryFee: number;
+  total: number;
+  status: string;
+  fulfillment: "Delivery" | "Pickup";
+}
+
+/**
+ * Fetches a shop's past orders, newest first. The Web App caches this
+ * response for 5 minutes per shop, so this is safe to call on every
+ * static regeneration without hammering the Sheet.
+ */
+export async function getOrderHistory(
+  shopName: string,
+  limit = 50
+): Promise<OrderHistoryItem[]> {
+  try {
+    const url = buildUrl({ action: "getOrderHistory", shop: shopName, limit });
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.status !== "ok") return [];
+    return data.orders ?? [];
+  } catch {
+    return [];
   }
 }
