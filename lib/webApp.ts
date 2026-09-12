@@ -49,6 +49,7 @@ export interface LogOrderParams {
   subtotal: number;
   deliveryFee: number;
   total: number;
+  fulfillment: "delivery" | "pickup";
 }
 
 /**
@@ -65,6 +66,7 @@ export async function logOrder(params: LogOrderParams): Promise<void> {
       subtotal: params.subtotal,
       delivery: params.deliveryFee,
       total: params.total,
+      fulfillment: params.fulfillment,
     });
     await fetch(url);
   } catch {
@@ -80,6 +82,7 @@ export interface OrderHistoryItem {
   deliveryFee: number;
   total: number;
   status: string;
+  fulfillment: "Delivery" | "Pickup";
 }
 
 /**

@@ -34,6 +34,7 @@ interface Props {
 
 type Step = "form" | "confirm" | "submitting" | "success";
 type Tab = "order" | "history";
+type Fulfillment = "delivery" | "pickup";
 
 interface OrderLine {
   name: string;
@@ -44,6 +45,7 @@ interface OrderLine {
 
 export default function OrderPage({ slug, shopName, orderHistory }: Props) {
   const [tab, setTab] = useState<Tab>("order");
+  const [fulfillment, setFulfillment] = useState<Fulfillment>("delivery");
   const [qtys, setQtys] = useState<number[]>(MENU_ITEMS.map(() => 0));
   const [deliveryDate, setDeliveryDate] = useState<Date | undefined>();
   const [showCalendar, setShowCalendar] = useState(false);
@@ -65,7 +67,12 @@ export default function OrderPage({ slug, shopName, orderHistory }: Props) {
   const subtotal = MENU_ITEMS.reduce((s, item, i) => s + item.price * qtys[i], 0);
   const discountRate = totalUnits >= VOLUME_DISCOUNT_THRESHOLD ? VOLUME_DISCOUNT_RATE : 0;
   const discountAmount = subtotal * discountRate;
-  const delivery = subtotal < FREE_DELIVERY_THRESHOLD ? DELIVERY_FEE : 0;
+  const delivery =
+    fulfillment === "pickup"
+      ? 0
+      : subtotal < FREE_DELIVERY_THRESHOLD
+      ? DELIVERY_FEE
+      : 0;
   const total = subtotal - discountAmount + delivery;
   const progressPct = Math.min(100, (totalUnits / VOLUME_DISCOUNT_THRESHOLD) * 100);
 
@@ -123,14 +130,14 @@ export default function OrderPage({ slug, shopName, orderHistory }: Props) {
         body: JSON.stringify({
           shopName, dateStr, notes, lines: orderedLines,
           subtotal, discount: -discountAmount,
-          deliveryFee: delivery, total, totalUnits,
+          deliveryFee: delivery, total, totalUnits, fulfillment,
         }),
       });
 
       await logOrder({
         shopName, deliveryDate, dateStr,
         items: itemSummary, subtotal,
-        deliveryFee: delivery, total,
+        deliveryFee: delivery, total, fulfillment,
       });
 
       setStep("success");
@@ -222,8 +229,32 @@ export default function OrderPage({ slug, shopName, orderHistory }: Props) {
             </div>
             <div className={styles.shopName}>{shopName}</div>
 
+            {/* Fulfillment */}
+            <p className={styles.sectionLabel} style={{ marginTop: 20 }}>Delivery or pickup?</p>
+            <div className={styles.fulfillmentToggle}>
+              <button
+                className={`${styles.fulfillmentBtn} ${fulfillment === "delivery" ? styles.fulfillmentBtnActive : ""}`}
+                onClick={() => setFulfillment("delivery")}
+              >
+                Delivery
+              </button>
+              <button
+                className={`${styles.fulfillmentBtn} ${fulfillment === "pickup" ? styles.fulfillmentBtnActive : ""}`}
+                onClick={() => setFulfillment("pickup")}
+              >
+                Pickup
+              </button>
+            </div>
+            {fulfillment === "pickup" && (
+              <p className={styles.pickupNote}>
+                Pickup is available anytime from 6:30am onwards.
+              </p>
+            )}
+
             {/* Date */}
-            <p className={styles.sectionLabel} style={{ marginTop: 20 }}>Requested delivery date</p>
+            <p className={styles.sectionLabel} style={{ marginTop: 20 }}>
+              {fulfillment === "pickup" ? "Requested pickup date" : "Requested delivery date"}
+            </p>
             <div className={styles.dateField}>
               <button
                 className={`${styles.dateButton} ${deliveryDate ? styles.hasDate : ""}`}
@@ -314,10 +345,12 @@ export default function OrderPage({ slug, shopName, orderHistory }: Props) {
 
               <div className={styles.summaryRow}>
                 <span className={styles.summaryLabel}>
-                  Delivery{" "}
-                  <span style={{ opacity: 0.5, fontSize: 11 }}>
-                    {delivery === 0 ? "(free over $120)" : "($20 · free over $120)"}
-                  </span>
+                  {fulfillment === "pickup" ? "Pickup" : "Delivery"}{" "}
+                  {fulfillment === "delivery" && (
+                    <span style={{ opacity: 0.5, fontSize: 11 }}>
+                      {delivery === 0 ? "(free over $120)" : "($20 · free over $120)"}
+                    </span>
+                  )}
                 </span>
                 <span className={styles.summaryValue}>{delivery === 0 ? "Free" : `$${delivery.toFixed(2)}`}</span>
               </div>
@@ -366,8 +399,15 @@ export default function OrderPage({ slug, shopName, orderHistory }: Props) {
             <div className={styles.modalSection}>Shop</div>
             <div style={{ fontSize: 14, fontWeight: 600, color: "var(--black)" }}>{shopName}</div>
 
-            <div className={styles.modalSection}>Delivery date</div>
+            <div className={styles.modalSection}>
+              {fulfillment === "pickup" ? "Pickup date" : "Delivery date"}
+            </div>
             <div style={{ fontSize: 14, color: "var(--charcoal)" }}>{format(deliveryDate, "EEEE d MMMM yyyy")}</div>
+            {fulfillment === "pickup" && (
+              <p className={styles.pickupNote} style={{ marginTop: 4 }}>
+                Pickup is available anytime from 6:30am onwards.
+              </p>
+            )}
 
             <div className={styles.modalSection}>Items</div>
             {orderedLines.map((l) => (
@@ -388,7 +428,8 @@ export default function OrderPage({ slug, shopName, orderHistory }: Props) {
               </div>
             )}
             <div className={styles.modalItem}>
-              <span>Delivery</span><span>{delivery === 0 ? "Free" : `$${delivery.toFixed(2)}`}</span>
+              <span>{fulfillment === "pickup" ? "Pickup" : "Delivery"}</span>
+              <span>{delivery === 0 ? "Free" : `$${delivery.toFixed(2)}`}</span>
             </div>
 
             <div className={styles.modalTotal}>
@@ -420,7 +461,10 @@ function OrderHistoryList({ orders }: { orders: OrderHistoryItem[] }) {
         <div key={`${order.timestamp}-${i}`} className={styles.historyCard}>
           <div className={styles.historyCardHeader}>
             <span className={styles.historyDate}>{order.dateStr}</span>
-            <span className={styles.historyStatus}>{order.status}</span>
+            <span>
+              <span className={styles.historyFulfillment}>{order.fulfillment}</span>
+              <span className={styles.historyStatus}>{order.status}</span>
+            </span>
           </div>
           <div className={styles.historyItems}>{order.items}</div>
           <div className={styles.historyFooter}>
